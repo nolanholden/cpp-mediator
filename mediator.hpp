@@ -14,35 +14,16 @@
 namespace holden {
 namespace mediator {
 
-namespace detail {
-
-// strategy to extract the template argument of a template type
-template<typename T>
-struct template_type {
-  typedef T arg;
-};
-
-// specialization for multiple template arguments
-template<template<typename, typename ...> class X, typename T,
-  typename ...Args>
-struct template_type<X<T, Args...>> {
-  typedef T arg;
-};
-
-} // namespace detail
-
 template <typename TResponse>
 class request {
  public:
-  typedef TResponse response_type;
+  using response_type = TResponse;
   virtual ~request() {}
 };
 
 template <typename TRequest>
 class request_handler {
  public:
-  typedef typename
-    detail::template_type<TRequest>::arg handle(TRequest message);
   virtual ~request_handler() {}
 };
 
@@ -61,27 +42,21 @@ class mediator {
     std::cout << "registered\n";
   }
 
-  template<typename TRequest,
-    typename TResponse = typename TRequest::response_type,
-    typename = std::enable_if
-      <
-        std::is_base_of<request<TResponse>,TRequest>::value>
-      >
-  typename TRequest::response_type
-  send(const TRequest& r) {
+  template<typename TRequest, typename TResponse = TRequest::response_type>
+  TResponse send(const TRequest& r) {
     std::cout << "sending...";
     auto hash = std::type_index{ typeid(r) };
-    for (auto i = 0; i < handlers.size(); ++i) {
+    for (decltype(handlers.size()) i = 0; i < handlers.size(); ++i) {
     }
     std::cout << "sent\n";
+    return 0;
   }
 
   virtual ~mediator() {}
 };
 
-
-class req : request<int> {};
-class req_handler : request_handler<req> {};
+class req : public request<int> {};
+class req_handler : public request_handler<req> {};
 
 } // namespace mediator
 } // namespace holden
@@ -92,12 +67,12 @@ using namespace holden::mediator;
 
 int main() {
   std::cout << "go\n";
-  // mediator m{};
-  // req r{};
-  // auto h = std::make_shared<req_handler>();
-  // m.register_handler(h);
+  mediator m{};
+  req r{};
+  auto h = std::make_shared<req_handler>();
+  m.register_handler(h);
 
-  // auto x = m.send(r);
+  auto x = m.send(r);
   std::cout << "\ndone.\n";
   return 0;
 }
