@@ -35,14 +35,14 @@ class mediator {
  public:
   mediator() {}
   std::unordered_map<size_t,
-    std::shared_ptr<request_handler_base>> handlers_by_type{};
+    std::shared_ptr<request_handler<request<void*>>>> handlers_by_type{};
 
   template <typename THandler>
   void register_handler(std::shared_ptr<THandler> handler) {
     std::cout << "registering...";
     handlers_by_type.emplace(
       typeid(*handler).hash_code(),
-      static_cast<std::shared_ptr<request_handler_base>>(handler)
+      reinterpret_cast<std::shared_ptr<request_handler<request<void*>>>>(handler)
     );
     std::cout << "registered\n";
   }
@@ -53,7 +53,10 @@ class mediator {
     auto hash = typeid(r).hash_code();
     for (decltype(handlers_by_type.size())
       i = 0; i < handlers_by_type.size(); ++i) {
-      //if ()
+      if (handlers_by_type.find(hash) != handlers_by_type.end()) {
+        auto handler_ptr = handlers_by_type[hash];
+        (reinterpret_cast<std::shared_ptr<request_handler<request<typename TRequest::response_type>>>>(handler_ptr))->handle;
+      }
     }
     std::cout << "sent\n";
     return 1;
