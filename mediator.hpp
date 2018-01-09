@@ -26,6 +26,7 @@ class request_handler_base {};
 template <typename TRequest>
 class request_handler : public request_handler_base {
  public:
+  using handler_response_type = typename TRequest::response_type;
   virtual typename TRequest::response_type handle(const TRequest& r) = 0;
   virtual ~request_handler() {}
 };
@@ -49,9 +50,10 @@ class mediator {
   template<typename TRequest>
   typename TRequest::response_type send(const TRequest& r) {
     std::cout << "sending...";
-    auto hash = std::type_index{ typeid(r) };
+    auto hash = typeid(r).hash_code();
     for (decltype(handlers_by_type.size())
       i = 0; i < handlers_by_type.size(); ++i) {
+      //if ()
     }
     std::cout << "sent\n";
     return 1;
