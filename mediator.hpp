@@ -1,6 +1,13 @@
 #ifndef _HOLDEN_MEDIATOR_H_
 #define _HOLDEN_MEDIATOR_H_
 
+#include <iostream>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <typeindex>
+#include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 namespace holden {
@@ -41,7 +48,15 @@ class mediator {
  public:
   mediator() {}
 
-  std::
+  std::vector<std::type_index> handlers{};
+  std::vector<size_t> hashes{};
+
+  template <typename TRequest>
+  void register_handler(std::shared_ptr<TRequest> handler) {
+    std::type_index t{ typeid(*handler) };
+    hashes.emplace_back(t.hash_code());
+    handlers.emplace_back(t);
+  }
 
   template<typename TResponse>
   TResponse send(const request<TResponse>& r) {}
@@ -49,25 +64,23 @@ class mediator {
   virtual ~mediator() {}
 };
 
-class GetAltitude : public request<int> {};
-class AltitudeHandler : public request_handler<GetAltitude> {
- public:
-  int handle(GetAltitude m) {}
-};
 
-void go() {
-  mediator m{};
-  GetAltitude g{};
-  GetAltitude message{ };
-
-  m.send(message);
-  auto x = m.send(g);
-}
-
+class req : request<int> {};
+class req_handler : request_handler<req> {};
 
 } // namespace mediator
 } // namespace holden
 
 #endif // _HOLDEN_MEDIATOR_H_
 
-int main() { return 0; }
+using namespace holden::mediator;
+
+int main() {
+  std::cout << "go\n";
+  mediator m{};
+  req r{};
+  auto h = std::make_shared<req_handler>();
+  m.register_handler(h);
+  std::cout << "\ndone.\n";
+  return 0;
+}
