@@ -58,8 +58,8 @@ class mediator {
     handlers.emplace_back(t);
   }
 
-  template<typename TResponse>
-  TResponse send(const request<TResponse>& r) {}
+  template<typename TRequest> typename detail::template_type<TRequest>::arg
+  send(const TRequest& r) {}
 
   virtual ~mediator() {}
 };
@@ -81,6 +81,9 @@ int main() {
   req r{};
   auto h = std::make_shared<req_handler>();
   m.register_handler(h);
+
+  m.send(r);
+
   std::cout << "\ndone.\n";
   return 0;
 }
