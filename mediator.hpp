@@ -26,7 +26,7 @@ class request_handler_base {};
 template <typename TRequest>
 class request_handler : public request_handler_base {
  public:
-  //typename TRequest::response_type handle(const TRequest& r) = 0;
+  virtual typename TRequest::response_type handle(const TRequest& r) = 0;
   virtual ~request_handler() {}
 };
 
@@ -63,7 +63,7 @@ class mediator {
 class req : public request<int> {};
 class req_handler : public request_handler<req> {
  public:
-  req::response_type handle(const req& r) {
+  int handle(const req& r) {
     return 7;
   }
 };
