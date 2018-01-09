@@ -34,12 +34,15 @@ class mediator {
  public:
   mediator() {}
   std::unordered_map<size_t,
-    std::shared_ptr<request_handler<void*>>> handlers_by_type{};
+    std::shared_ptr<request_handler_base>> handlers_by_type{};
 
   template <typename THandler>
   void register_handler(std::shared_ptr<THandler> handler) {
     std::cout << "registering...";
-    //handlers_by_type.emplace(typeid(*handler).hash_code(), handler);
+    handlers_by_type.emplace(
+      typeid(*handler).hash_code(),
+      static_cast<std::shared_ptr<request_handler_base>>(handler)
+    );
     std::cout << "registered\n";
   }
 
