@@ -8,6 +8,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace holden {
@@ -47,19 +48,26 @@ class request_handler {
 class mediator {
  public:
   mediator() {}
-
   std::vector<std::type_index> handlers{};
   std::vector<size_t> hashes{};
 
-  template <typename TRequest>
-  void register_handler(std::shared_ptr<TRequest> handler) {
+  template <typename THandler>
+  void register_handler(std::shared_ptr<THandler> handler) {
+    std::cout << "registering...";
     std::type_index t{ typeid(*handler) };
     hashes.emplace_back(t.hash_code());
     handlers.emplace_back(t);
+    std::cout << "registered\n";
   }
 
   template<typename TRequest> typename detail::template_type<TRequest>::arg
-  send(const TRequest& r) {}
+  send(const TRequest& r) {
+    std::cout << "sending...";
+    auto hash = std::type_index{ typeid(r) };
+    for (auto i = 0; i < handlers.size(); ++i) {
+    }
+    std::cout << "sent\n";
+  }
 
   virtual ~mediator() {}
 };
@@ -82,8 +90,7 @@ int main() {
   auto h = std::make_shared<req_handler>();
   m.register_handler(h);
 
-  m.send(r);
-
+  auto x = m.send(r);
   std::cout << "\ndone.\n";
   return 0;
 }
