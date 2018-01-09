@@ -34,7 +34,8 @@ struct template_type<X<T, Args...>> {
 template <typename TResponse>
 class request {
  public:
-   virtual ~request() {}
+  typedef TResponse response_type;
+  virtual ~request() {}
 };
 
 template <typename TRequest>
@@ -60,7 +61,13 @@ class mediator {
     std::cout << "registered\n";
   }
 
-  template<typename TRequest> typename detail::template_type<TRequest>::arg
+  template<typename TRequest,
+    typename TResponse = typename TRequest::response_type,
+    typename = std::enable_if
+      <
+        std::is_base_of<request<TResponse>,TRequest>::value>
+      >
+  typename TRequest::response_type
   send(const TRequest& r) {
     std::cout << "sending...";
     auto hash = std::type_index{ typeid(r) };
@@ -85,12 +92,12 @@ using namespace holden::mediator;
 
 int main() {
   std::cout << "go\n";
-  mediator m{};
-  req r{};
-  auto h = std::make_shared<req_handler>();
-  m.register_handler(h);
+  // mediator m{};
+  // req r{};
+  // auto h = std::make_shared<req_handler>();
+  // m.register_handler(h);
 
-  auto x = m.send(r);
+  // auto x = m.send(r);
   std::cout << "\ndone.\n";
   return 0;
 }
