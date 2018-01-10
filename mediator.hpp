@@ -3,9 +3,7 @@
 
 #include <iostream>
 #include <memory>
-#include <string>
 #include <type_traits>
-#include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
 #include <utility>
@@ -48,21 +46,24 @@ class mediator {
   template<typename TRequest, typename = std::enable_if<std::is_base_of<request_base, TRequest>::value>>
   typename TRequest::response_type send(const TRequest& r) {
     using handler_t = typename TRequest::handler_type;
+    using response_t = typename TRequest::response_type;
+
     auto hash = typeid(handler_t).hash_code();
-    for (decltype(handlers_by_type.size())
-      i = 0; i < handlers_by_type.size(); ++i) {
+    for (auto& a : handlers_by_type) {
       if (handlers_by_type.find(hash) != handlers_by_type.end()) {
         auto handler = std::static_pointer_cast<handler_t>(handlers_by_type[hash]);
         return handler->handle(r);
       }
     }
 
-    return 1;
+    // unexpected case, but do not throw.
+    return response_t{};
   }
 
   virtual ~mediator() {}
 };
 
+// request for int
 class req_handler;
 class req : public request<int, req_handler> {};
 class req_handler : public request_handler<req> {
@@ -72,6 +73,16 @@ class req_handler : public request_handler<req> {
   }
 };
 
+//// request for nothing (void)
+//class req_handler2;
+//class req2 : public request<void, req_handler2> {};
+//class req_handler2 : public request_handler<req> {
+//public:
+//  void handle(const req2& r) {
+//    // do some work
+//  }
+//};
+
 } // namespace mediator
 } // namespace holden
 
@@ -80,20 +91,19 @@ class req_handler : public request_handler<req> {
 using namespace holden::mediator;
 
 int main() {
-  std::cout << "go\n";
   mediator m{};
+
   req r{};
-  
+  //req2 r2{};
   auto h = std::make_shared<req_handler>();
-
-  std::cout << "registering...";
+  //auto h2 = std::make_shared<req_handler2>();
   m.register_handler(h);
-  std::cout << "registered\n";
+  //m.register_handler(h);
 
-  std::cout << "sending...";
   auto x = m.send(r);
-  std::cout << "sent\n";
+  //m.send(r2);
 
-  std::cout << "final value: " << x << "\n\ndone.\n";
+  auto i = 0;
+  std::cout << ++i << ". final value: " << x << "\n";
   return 0;
 }
