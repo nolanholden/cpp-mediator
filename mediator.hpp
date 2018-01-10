@@ -14,19 +14,21 @@
 namespace holden {
 namespace mediator {
 
-template <typename TResponse>
-class request {
+class request_base {};
+
+template <typename TResponse, typename THandler>
+class request : public request_base {
  public:
   using response_type = TResponse;
+  using handler_type = THandler;
   virtual ~request() {}
 };
 
-class request_handler_base {};
-
 template <typename TRequest>
-class request_handler : public request_handler_base {
+class request_handler {
  public:
-  using handler_response_type = typename TRequest::response_type;
+  using request_type = TRequest;
+  using response_type = typename TRequest::response_type;
   virtual typename TRequest::response_type handle(const TRequest& r) = 0;
   virtual ~request_handler() {}
 };
@@ -34,38 +36,34 @@ class request_handler : public request_handler_base {
 class mediator {
  public:
   mediator() {}
-  std::unordered_map<size_t,
-    std::shared_ptr<request_handler<request<int>>>> handlers_by_type{};
+  std::unordered_map<size_t, void*> handlers_by_type{};
 
   template <typename THandler>
-  void register_handler(std::shared_ptr<THandler> handler) {
-    std::cout << "registering...";
+  void register_handler(THandler* handler) {
     handlers_by_type.emplace(
-      typeid(*handler).hash_code(),
-      (std::shared_ptr<request_handler<req>>)(handler)
+      typeid(*handler).hash_code(), static_cast<void*>(handler)
     );
-    std::cout << "registered\n";
   }
 
-  template<typename TRequest>
+  template<typename TRequest, typename = std::enable_if<std::is_base_of<request_base, TRequest>::value>>
   typename TRequest::response_type send(const TRequest& r) {
-    std::cout << "sending...";
-    auto hash = typeid(r).hash_code();
+    auto hash = typeid(typename TRequest::handler_type).hash_code();
     for (decltype(handlers_by_type.size())
       i = 0; i < handlers_by_type.size(); ++i) {
       if (handlers_by_type.find(hash) != handlers_by_type.end()) {
-        auto handler_ptr = handlers_by_type[hash];
+        auto handler_ptr = static_cast<typename TRequest::handler_type*>(handlers_by_type[hash]);
         return handler_ptr->handle(r);
       }
     }
-    std::cout << "sent\n";
+
     return 1;
   }
 
   virtual ~mediator() {}
 };
 
-class req : public request<int> {};
+class req_handler;
+class req : public request<int, req_handler> {};
 class req_handler : public request_handler<req> {
  public:
   int handle(const req& r) {
@@ -84,10 +82,16 @@ int main() {
   std::cout << "go\n";
   mediator m{};
   req r{};
-  auto h = std::make_shared<req_handler>();
-  m.register_handler(h);
+  req_handler h{};
 
+  std::cout << "registering...";
+  m.register_handler(&h);
+  std::cout << "registered\n";
+
+  std::cout << "sending...";
   auto x = m.send(r);
+  std::cout << "sent\n";
+
   std::cout << "final value: " << x << "\n\ndone.\n";
   return 0;
 }
