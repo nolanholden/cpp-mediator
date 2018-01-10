@@ -36,23 +36,24 @@ class request_handler {
 class mediator {
  public:
   mediator() {}
-  std::unordered_map<size_t, void*> handlers_by_type{};
+  std::unordered_map<size_t, std::shared_ptr<void>> handlers_by_type{};
 
   template <typename THandler>
-  void register_handler(THandler* handler) {
+  void register_handler(std::shared_ptr<THandler> handler) {
     handlers_by_type.emplace(
-      typeid(*handler).hash_code(), static_cast<void*>(handler)
+      typeid(*handler).hash_code(), static_cast<std::shared_ptr<void>>(handler)
     );
   }
 
   template<typename TRequest, typename = std::enable_if<std::is_base_of<request_base, TRequest>::value>>
   typename TRequest::response_type send(const TRequest& r) {
-    auto hash = typeid(typename TRequest::handler_type).hash_code();
+    using handler_t = typename TRequest::handler_type;
+    auto hash = typeid(handler_t).hash_code();
     for (decltype(handlers_by_type.size())
       i = 0; i < handlers_by_type.size(); ++i) {
       if (handlers_by_type.find(hash) != handlers_by_type.end()) {
-        auto handler_ptr = static_cast<typename TRequest::handler_type*>(handlers_by_type[hash]);
-        return handler_ptr->handle(r);
+        auto handler = std::static_pointer_cast<handler_t>(handlers_by_type[hash]);
+        return handler->handle(r);
       }
     }
 
@@ -82,10 +83,11 @@ int main() {
   std::cout << "go\n";
   mediator m{};
   req r{};
-  req_handler h{};
+  
+  auto h = std::make_shared<req_handler>();
 
   std::cout << "registering...";
-  m.register_handler(&h);
+  m.register_handler(h);
   std::cout << "registered\n";
 
   std::cout << "sending...";
