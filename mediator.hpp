@@ -1,8 +1,7 @@
-#ifndef _HOLDEN_MEDIATOR_H_
-#define _HOLDEN_MEDIATOR_H_
+#ifndef _HOLDEN_MEDIATOR_HPP_
+#define _HOLDEN_MEDIATOR_HPP_
 
 #include <stdexcept>
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -10,7 +9,6 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 namespace holden {
 namespace mediator {
@@ -105,7 +103,7 @@ public:
 } // namespace mediator
 } // namespace holden
 
-#endif // _HOLDEN_MEDIATOR_H_
+#endif // _HOLDEN_MEDIATOR_HPP_
 
 using namespace holden::mediator;
 
