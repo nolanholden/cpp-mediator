@@ -1,9 +1,11 @@
 #ifndef _HOLDEN_MEDIATOR_H_
 #define _HOLDEN_MEDIATOR_H_
 
+#include <stdexcept>
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <type_traits>
 #include <typeinfo>
 #include <unordered_map>
@@ -20,6 +22,7 @@ class request : public request_base {
  public:
   using response_type = TResponse;
   using handler_type = THandler;
+
   virtual ~request() {}
 };
 
@@ -28,13 +31,22 @@ class request_handler {
  public:
   using request_type = TRequest;
   using response_type = typename TRequest::response_type;
+
   virtual typename TRequest::response_type handle(const TRequest& r) = 0;
+
   virtual ~request_handler() {}
 };
+
+template <typename Functor, typename ...Args>
+auto call_func(Functor func, Args&& ...args)
+    -> decltype(func(std::forward<Args>(args)...)) {
+  return func(std::forward<Args>(args)...);
+}
 
 class mediator {
  public:
   mediator() {}
+  static std::unordered_map<int, int> col;
   std::unordered_map<size_t, std::shared_ptr<void>> handlers_by_type{};
 
   template <typename THandler>
@@ -44,11 +56,12 @@ class mediator {
     );
   }
 
+  // Send a message to be sent handleded by the registered request_handler.
+  // Throw if no handler is found.
   template<typename TRequest,
     typename = std::enable_if<std::is_base_of<request_base, TRequest>::value>>
   auto send(const TRequest& r) -> typename TRequest::response_type {
     using handler_t = typename TRequest::handler_type;
-    using response_t = typename TRequest::response_type;
 
     auto hash = typeid(handler_t).hash_code();
     for (auto& a : handlers_by_type) {
@@ -58,18 +71,16 @@ class mediator {
       }
     }
 
-    // unexpected case, but do not throw.
-    return response_t{};
+    // could not find handler; throw.
+    std::string err_msg
+      = std::string{ "no matching handler found for the provided request of typeid.name: '" }
+      + typeid(TRequest).name() + "' with expected handler of type '"
+      + typeid(handler_t).name() + "'.";
+    throw std::invalid_argument(err_msg);
   }
 
   virtual ~mediator() {}
 };
-
-template <typename Functor, typename ...Args>
-auto send(Functor func, Args&& ...args)
-    -> decltype(func(std::forward<Args>(args)...)) {
-  return func(std::forward<Args>(args)...);
-}
 
 // request for int
 class req_handler;
@@ -84,7 +95,7 @@ class req_handler : public request_handler<req> {
 // request for nothing (void)
 class req_handler2;
 class req2 : public request<void, req_handler2> {};
-class req_handler2 : public request_handler<req> {
+class req_handler2 : public request_handler<req2> {
 public:
   void handle(const req2& r) {
     // do some work
@@ -104,12 +115,12 @@ int main() {
   req r{};
   req2 r2{};
   auto h = std::make_shared<req_handler>();
-  //auto h2 = std::make_shared<req_handler2>();
+  auto h2 = std::make_shared<req_handler2>();
   m.register_handler(h);
-  //m.register_handler(h);
+  m.register_handler(h2);
 
   auto x = m.send(r);
-  //m.send(r2);
+  m.send(r2);
 
   auto i = 0;
   std::cout << ++i << ". final value: " << x << "\n";
