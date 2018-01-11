@@ -1,5 +1,5 @@
 # cpp-mediator
-Simple mediator implementation in C++ 
+A simple mediator implementation in C++ 
 
 ```c++
 // We must forward declare our WeatherSensor because requests require their 
