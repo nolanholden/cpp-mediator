@@ -2,7 +2,6 @@
 #define _HOLDEN_MEDIATOR_HPP_
 
 #include <stdexcept>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -80,47 +79,7 @@ class mediator {
   virtual ~mediator() {}
 };
 
-// request for int
-class req_handler;
-class req : public request<int, req_handler> {};
-class req_handler : public request_handler<req> {
- public:
-  int handle(const req& r) {
-    return 7;
-  }
-};
-
-// request for nothing (void)
-class req_handler2;
-class req2 : public request<void, req_handler2> {};
-class req_handler2 : public request_handler<req2> {
-public:
-  void handle(const req2& r) {
-    // do some work
-  }
-};
-
 } // namespace mediator
 } // namespace holden
 
 #endif // _HOLDEN_MEDIATOR_HPP_
-
-using namespace holden::mediator;
-
-int main() {
-  mediator m{};
-
-  req r{};
-  req2 r2{};
-  auto h = std::make_shared<req_handler>();
-  auto h2 = std::make_shared<req_handler2>();
-  m.register_handler(h);
-  m.register_handler(h2);
-
-  auto x = m.send(r);
-  m.send(r2);
-
-  auto i = 0;
-  std::cout << ++i << ". final value: " << x << "\n";
-  return 0;
-}
