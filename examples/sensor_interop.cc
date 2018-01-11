@@ -122,9 +122,9 @@ int main() {
 
 /* output:
  *
- * humidity is: 55.3
- * altitude is: 29028 feet
- * altitude is: 8848 meters
- * operating mode is: Mode0
- * operating mode is: Mode1
+ * $ humidity is: 55.3
+ * $ altitude is: 29028 feet
+ * $ altitude is: 8848 meters
+ * $ operating mode is: Mode0
+ * $ operating mode is: Mode1
 */
