@@ -2,7 +2,7 @@
 A simple mediator implementation in C++ 
 
 ```c++
-// We must forward declare our WeatherSensor because requests require their 
+// We must forward declare our Speaker because requests require their 
 // handler as a template argument to permit template deduction when sending 
 // requests through the mediator (due to fundamental limitations of C++).
 class Speaker;
