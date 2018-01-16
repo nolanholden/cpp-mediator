@@ -57,7 +57,7 @@ class mediator {
   // Throw if no handler is found.
   template<typename TRequest,
     typename = std::enable_if<std::is_base_of<request_base, TRequest>::value>>
-  auto send(const TRequest& r) -> typename TRequest::response_type {
+  typename TRequest::response_type send(const TRequest& r) {
     using handler_t = typename TRequest::handler_type;
 
     auto hash = typeid(handler_t).hash_code();
