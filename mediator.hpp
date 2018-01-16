@@ -12,10 +12,10 @@
 namespace holden {
 namespace mediator {
 
-class request_base {};
+struct request_base {};
 
 template <typename TResponse, typename THandler>
-class request : public request_base {
+struct request : request_base {
  public:
   using response_type = TResponse;
   using handler_type = THandler;
