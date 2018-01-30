@@ -10,12 +10,13 @@
 #include <utility>
 
 namespace holden {
-namespace mediator {
 
-struct request_base {};
+namespace detail {
+  struct request_base {};
+} // namespace detail
 
 template <typename TResponse, typename THandler>
-struct request : request_base {
+struct request : detail::request_base {
  public:
   using response_type = TResponse;
   using handler_type = THandler;
@@ -56,7 +57,7 @@ class mediator {
   // Send a message to be sent handleded by the registered request_handler.
   // Throw if no handler is found.
   template<typename TRequest,
-    typename = std::enable_if<std::is_base_of<request_base, TRequest>::value>>
+    typename = std::enable_if<std::is_base_of<detail::request_base, TRequest>::value>>
   typename TRequest::response_type send(const TRequest& r) {
     using handler_t = typename TRequest::handler_type;
 
@@ -79,7 +80,6 @@ class mediator {
   virtual ~mediator() {}
 };
 
-} // namespace mediator
 } // namespace holden
 
 #endif // _HOLDEN_MEDIATOR_HPP_
