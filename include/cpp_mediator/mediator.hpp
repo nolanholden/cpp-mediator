@@ -35,12 +35,6 @@ class request_handler {
   virtual ~request_handler() {}
 };
 
-template <typename Functor, typename ...Args>
-auto call_func(Functor func, Args&& ...args)
-    -> decltype(func(std::forward<Args>(args)...)) {
-  return func(std::forward<Args>(args)...);
-}
-
 class mediator {
  public:
   mediator() {}
