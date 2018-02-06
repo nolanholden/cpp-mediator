@@ -37,8 +37,6 @@ class request_handler {
 
 class mediator {
  public:
-  mediator() {}
-  static std::unordered_map<int, int> col;
   std::unordered_map<size_t, std::shared_ptr<void>> handlers_by_type{};
 
   template <typename THandler>
