@@ -37,8 +37,8 @@ class request_handler {
 
 class mediator {
  public:
-  std::unordered_map<size_t, std::shared_ptr<void>> handlers_by_type{};
-
+  // Register a `request_handler<>` for given request type(s) such that `request`s of 
+  // those/that type may have an appropriate `request_handler` to handle the request.
   template <typename THandler>
   void register_handler(std::shared_ptr<THandler> handler) {
     handlers_by_type.emplace(
@@ -70,6 +70,9 @@ class mediator {
   }
 
   virtual ~mediator() {}
+  
+ protected:
+  std::unordered_map<size_t, std::shared_ptr<void>> handlers_by_type{};
 };
 
 } // namespace holden
