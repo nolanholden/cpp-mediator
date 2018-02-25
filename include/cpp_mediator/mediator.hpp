@@ -46,7 +46,7 @@ class mediator {
     );
   }
 
-  // Send a message to be sent handleded by the registered request_handler.
+  // Send a message to be handleded by the appropriate registered request_handler.
   // Throw if no handler is found.
   template<typename TRequest,
     typename = std::enable_if<std::is_base_of<detail::request_base, TRequest>::value>>
