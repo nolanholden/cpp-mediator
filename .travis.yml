@@ -21,4 +21,8 @@ script:
   - ./travis.sh
 
 after_success:
-  - coveralls --root . -E ".*CMakeFiles.*" -e gtest/ tests/mediator_unittests.cc
+  - coveralls --root . \
+    -E ".*CMakeFiles.*" \
+    -e gtest/ \
+    -e tests/ \
+    -e examples/
