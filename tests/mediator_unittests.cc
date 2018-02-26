@@ -50,8 +50,8 @@
     return_type, \
     request_param_name, \
     handle_code, \
-    /* no fields or methods */, \
-    /* default c'tor */() {})
+    void* dummy;, \
+    /* default c'tor */ () {})
 
 
 
@@ -65,7 +65,11 @@
   Req##id request_##id{request_args}; \
   auto actual = m.send(request_##id)
 
-#define SendFor(id) SendForWithArgs(id, /* no args */)
+#define SendFor(id) \
+  M(); \
+  REG_HAN(id); \
+  Req##id request_##id{}; \
+  auto actual = m.send(request_##id)
 
 
 
