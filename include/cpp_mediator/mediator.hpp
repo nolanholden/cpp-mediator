@@ -54,11 +54,9 @@ class mediator {
     using handler_t = typename TRequest::handler_type;
 
     auto hash = typeid(handler_t).hash_code();
-    for (auto& a : handlers_by_type) {
-      if (handlers_by_type.find(hash) != handlers_by_type.end()) {
-        auto handler = std::static_pointer_cast<handler_t>(handlers_by_type[hash]);
-        return handler->handle(r);
-      }
+    if (handlers_by_type.find(hash) != handlers_by_type.end()) {
+      auto handler = std::static_pointer_cast<handler_t>(handlers_by_type[hash]);
+      return handler->handle(r);
     }
 
     // could not find handler; throw.
