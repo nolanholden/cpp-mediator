@@ -7,7 +7,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++
+      - g++-6
       - valgrind
 
 before_install:
