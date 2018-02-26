@@ -11,33 +11,40 @@ namespace holden {
 namespace detail {
 namespace tuple_searching {
 
-template<class...>
-struct voider { using type = void; };
 
-template<class...Ts>
-using void_t = typename voider<Ts...>::type;
+template<class...>  struct voider { using type = void; };
+template<class...Ts> using void_t = typename voider<Ts...>::type;
 
 template<template<class...> class Test, class Tuple>
-struct get_first_pass;
-
+struct get_first_passing_type;
 template<template<class...> class Test, class Tuple>
-using get_first_pass_t = typename get_first_pass<Test, Tuple>::type;
+using get_first_passing_type_t
+  = typename get_first_passing_type<Test, Tuple>::type;
 
-template<template<class...> class, class, class...>
-struct first_pass {};
-
+template<template<class...> class, class, class...> struct first_passing_type;
 template<template<class...> class Test, class T0, class...Ts>
-struct first_pass<Test, std::enable_if_t<!Test<T0>::value>, T0, Ts...> :
-  first_pass<Test, void, Ts...>
+struct first_passing_type<Test, std::enable_if_t<!Test<T0>::value>, T0, Ts...>
+  : first_passing_type<Test, void, Ts...>
 {};
 
+template <bool... Ts>
+struct any_of : public std::false_type {  };
+
+template <bool b, bool... Ts>
+struct any_of<b, Ts...>
+  : public std::conditional_t<b, std::true_type, any_of<Ts...>> {};
+
 template<template<class...> class Test, class T0, class...Ts>
-struct first_pass<Test, std::enable_if_t<Test<T0>::value>, T0, Ts...> {
+struct first_passing_type<Test, std::enable_if_t<Test<T0>::value>, T0, Ts...> {
   using type = T0;
+  static_assert(!any_of<Test<Ts>::value...>::value, 
+                "multiple types are registered for a given request");
 };
 
-template<template<class...> class Test, template<class...> class Tuple, class...Ts>
-struct get_first_pass<Test, Tuple<Ts...>> : first_pass<Test, void, Ts...>
+template<template<class...> class Test,
+  template<class...> class Tuple, class...Ts>
+struct get_first_passing_type<Test, Tuple<Ts...>>
+  : first_passing_type<Test, void, Ts...>
 {};
 
 template<class Base>
@@ -48,14 +55,14 @@ struct is_derived_from {
 
 template<class Base, class Tuple>
 using get_first_derived =
-  get_first_pass_t<is_derived_from<Base>::template test, Tuple>;
+  get_first_passing_type_t<is_derived_from<Base>::template test, Tuple>;
 
 template<class Base, class Tuple>
 auto get_from_base(Tuple&& tuple)
--> decltype(std::get< get_first_derived<Base, std::decay_t<Tuple>> >(
-                                                  std::forward<Tuple>(tuple))) {
-  return std::get< get_first_derived<Base, std::decay_t<Tuple>> >(
-                                                  std::forward<Tuple>(tuple));
+-> decltype(std::get< get_first_derived<Base,
+      std::decay_t<Tuple>> >(std::forward<Tuple>(tuple))) {
+  return std::get< get_first_derived<Base,
+      std::decay_t<Tuple>> >(std::forward<Tuple>(tuple));
 }
 
 } // namespace tuple_searching
@@ -79,11 +86,7 @@ struct request {
 template <typename TRequest>
 class request_handler {
  public:
-  using request_type = TRequest;
-  using response_type = typename TRequest::response_type;
-
-  virtual typename TRequest::response_type
-  handle(const TRequest& r) = 0;
+  virtual typename TRequest::response_type handle(const TRequest& r) = 0;
 
   virtual ~request_handler() {}
 };
@@ -95,8 +98,7 @@ class mediator final : public mediator_base {
   std::tuple<Handlers...> handlers_;
 
  public:
-  mediator(Handlers... handlers)
-    : handlers_(handlers...) {}
+  mediator(Handlers... handlers) : handlers_(handlers...) {}
 
   template<typename TRequest>
   auto send(const TRequest& r) -> typename TRequest::response_type {
