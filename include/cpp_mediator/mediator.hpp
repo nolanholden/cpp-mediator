@@ -74,27 +74,29 @@ T& ref(T* x) { return *x; }
 
 } // namespace detail
 
-
+// An optional pure-virtual struct to mark request types
 template <typename TResponse>
 struct request {
- public:
   using response_type = TResponse;
+  virtual ~request() = 0;
+};
 
-  virtual ~request() {}
+template <typename TResponse>
+request<TResponse>::~request() {}
+
+
+template <typename TRequest>
+struct request_handler {
+  virtual ~request_handler() = 0;
 };
 
 template <typename TRequest>
-class request_handler {
- public:
-  virtual typename TRequest::response_type handle(const TRequest& r) = 0;
+request_handler<TRequest>::~request_handler() {}
 
-  virtual ~request_handler() {}
-};
-
-class mediator_base {};
 
 template <typename ...Handlers>
-class mediator final : public mediator_base {
+class mediator {
+ protected:
   std::tuple<Handlers...> handlers_;
 
  public:
@@ -104,10 +106,11 @@ class mediator final : public mediator_base {
   auto send(const TRequest& r) -> typename TRequest::response_type {
     using namespace detail;
     using namespace detail::tuple_searching;
-    using request_t = std::decay_t<TRequest>;
-    using handler_t = request_handler<request_t>;
+    using handler_t = request_handler<std::decay_t<TRequest>>;
     return ref(get_from_base<handler_t>(handlers_)).handle(r);
   }
+
+  virtual ~mediator() {}
 };
 
 template <typename... Args>
