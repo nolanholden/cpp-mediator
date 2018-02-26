@@ -1,22 +1,69 @@
 #ifndef _HOLDEN_MEDIATOR_HPP_
 #define _HOLDEN_MEDIATOR_HPP_
 
-#include <stdexcept>
-#include <memory>
-#include <string>
+#include <cstddef>
+#include <tuple>
 #include <type_traits>
-#include <typeinfo>
-#include <unordered_map>
 #include <utility>
 
 namespace holden {
 
 namespace detail {
-  struct request_base {};
+namespace tuple_searching {
+
+template<class...>
+struct voider { using type = void; };
+
+template<class...Ts>
+using void_t = typename voider<Ts...>::type;
+
+template<template<class...> class Test, class Tuple>
+struct get_first_pass;
+
+template<template<class...> class Test, class Tuple>
+using get_first_pass_t = typename get_first_pass<Test, Tuple>::type;
+
+template<template<class...> class, class, class...>
+struct first_pass {};
+
+template<template<class...> class Test, class T0, class...Ts>
+struct first_pass<Test, std::enable_if_t<!Test<T0>::value>, T0, Ts...> :
+  first_pass<Test, void, Ts...>
+{};
+
+template<template<class...> class Test, class T0, class...Ts>
+struct first_pass<Test, std::enable_if_t<Test<T0>::value>, T0, Ts...> {
+  using type = T0;
+};
+
+template<template<class...> class Test, template<class...> class Tuple, class...Ts>
+struct get_first_pass<Test, Tuple<Ts...>> : first_pass<Test, void, Ts...>
+{};
+
+template<class Base>
+struct is_derived_from {
+  template<class Derived>
+  using test = std::is_base_of<Base,Derived>;
+};
+
+template<class Base, class Tuple>
+using get_first_derived =
+  get_first_pass_t<is_derived_from<Base>::template test, Tuple>;
+
+template<class Base, class Tuple>
+auto get_from_base(Tuple&& tuple)
+-> decltype(std::get< get_first_derived<Base, std::decay_t<Tuple>> >(
+                                                  std::forward<Tuple>(tuple))) {
+  return std::get< get_first_derived<Base, std::decay_t<Tuple>> >(
+                                                  std::forward<Tuple>(tuple));
+}
+
+} // namespace tuple_searching
 } // namespace detail
 
+
 template <typename TResponse, typename THandler>
-struct request : detail::request_base {
+struct request {
  public:
   using response_type = TResponse;
   using handler_type = THandler;
@@ -35,43 +82,26 @@ class request_handler {
   virtual ~request_handler() {}
 };
 
-class mediator {
+class mediator_base {};
+
+template <typename ...Handlers>
+class mediator final : public mediator_base {
+  std::tuple<Handlers&...> handlers_;
+
  public:
-  // Register a `request_handler<>` for given request type(s) such that `request`s of 
-  // those/that type may have an appropriate `request_handler` to handle the request.
-  template <typename THandler>
-  void register_handler(std::shared_ptr<THandler> handler) {
-    handlers_by_type.emplace(
-      typeid(*handler).hash_code(), static_cast<std::shared_ptr<void>>(handler)
-    );
+  mediator(Handlers&... handlers)
+    : handlers_(std::forward_as_tuple(handlers...)) {}
+
+  template<typename TRequest>
+  auto send(const TRequest& r) -> typename TRequest::response_type {
+    return std::get<typename TRequest::handler_type>(handlers_).handle(r);
   }
-
-  // Send a message to be handleded by the appropriate registered request_handler.
-  // Throw if no handler is found.
-  template<typename TRequest,
-    typename = std::enable_if<std::is_base_of<detail::request_base, TRequest>::value>>
-  typename TRequest::response_type send(const TRequest& r) {
-    using handler_t = typename TRequest::handler_type;
-
-    auto hash = typeid(handler_t).hash_code();
-    if (handlers_by_type.find(hash) != handlers_by_type.end()) {
-      auto handler = std::static_pointer_cast<handler_t>(handlers_by_type[hash]);
-      return handler->handle(r);
-    }
-
-    // could not find handler; throw.
-    std::string err_msg
-      = std::string{ "no matching handler found for the provided request of typeid.name: '" }
-      + typeid(TRequest).name() + "' with expected handler of type '"
-      + typeid(handler_t).name() + "'.";
-    throw std::invalid_argument(err_msg);
-  }
-
-  virtual ~mediator() {}
-  
- protected:
-  std::unordered_map<size_t, std::shared_ptr<void>> handlers_by_type{};
 };
+
+template <typename... Args>
+mediator<Args&...> make_mediator(Args&... args) {
+    return mediator<Args&...>(args...);
+}
 
 } // namespace holden
 
