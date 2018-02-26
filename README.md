@@ -1,12 +1,15 @@
 # cpp-mediator
+[![Build Status](https://travis-ci.org/nolanholden/cpp-mediator.svg?branch=master)](https://travis-ci.org/nolanholden/cpp-mediator)
+[![Coverage Status](https://coveralls.io/repos/github/nolanholden/cpp-mediator/badge.svg?branch=master)](https://coveralls.io/github/nolanholden/cpp-mediator?branch=master)
+
 A simple mediator implementation in C++ 
 
 ### Example _hello, world_ program using `cpp-mediator` below.
 ```c++
+// A simple hello world program using `cpp-mediator`.
 #include <cpp_mediator/mediator.hpp>
 
 #include <iostream>
-
 
 class Speaker;
 
