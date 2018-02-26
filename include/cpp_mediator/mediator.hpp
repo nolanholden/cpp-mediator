@@ -68,11 +68,10 @@ T& ref(T* x) { return *x; }
 } // namespace detail
 
 
-template <typename TResponse, typename THandler>
+template <typename TResponse>
 struct request {
  public:
   using response_type = TResponse;
-  using handler_type = THandler;
 
   virtual ~request() {}
 };
@@ -83,7 +82,8 @@ class request_handler {
   using request_type = TRequest;
   using response_type = typename TRequest::response_type;
 
-  virtual typename TRequest::response_type handle(const TRequest& r) = 0;
+  virtual typename TRequest::response_type
+  handle(const TRequest& r) = 0;
 
   virtual ~request_handler() {}
 };
