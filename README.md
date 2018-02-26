@@ -1,23 +1,26 @@
 # cpp-mediator
 A simple mediator implementation in C++ 
 
+### Example _hello, world_ program using `cpp-mediator` below.
 ```c++
-// We must forward declare our Speaker because requests require their 
-// handler as a template argument to permit template deduction when sending 
-// requests through the mediator (due to fundamental limitations of C++).
+#include <cpp_mediator/mediator.hpp>
+
+#include <iostream>
+
+
 class Speaker;
 
-// Define a request to be called from anywhere.
-class SayHello : public request<void, Speaker> { // void because we dont need 
- public:                                         // a response from the Speaker.
+// Define a request.
+struct SayHello : public holden::request<void, Speaker> {
+ public:
   SayHello(std::ostream& out) : output_stream(out) {}
 
-  // the output stream with which we wish to say hello
+  // the output stream through which the handler should "say hello."
   std::ostream& output_stream;
 };
 
-// Configure the request handler.
-class Speaker : public request_handler<SayHello> {
+// Configure a request handler.
+class Speaker : public holden::request_handler<SayHello> {
  public:
   // Say hello on the provided output stream.
   void handle(const SayHello& r) {
@@ -26,16 +29,14 @@ class Speaker : public request_handler<SayHello> {
 };
 
 
-// Usage:
-
 int main() {
-  mediator mediator{};
+  holden::mediator m{};
 
   auto speaker = std::make_shared<Speaker>();
-  mediator.register_handler(speaker);
+  m.register_handler(speaker);
 
   SayHello request{ std::cout };
-  mediator.send(request);
+  m.send(request);
 
   return 0;
 }
