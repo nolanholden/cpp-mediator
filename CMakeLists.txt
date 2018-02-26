@@ -10,7 +10,7 @@ add_executable(tests tests/mediator_unittests.cc)
 find_package (Threads)
 target_link_libraries(tests gtest ${CMAKE_THREAD_LIBS_INIT})
 
-target_compile_options(tests PRIVATE -std=c++14 -g -Wall -Werror -Wextra -Wpedantic -Wconversion -Wswitch-default -Wswitch-enum -Wunreachable-code -Wwrite-strings -Wcast-align -Wshadow -Wundef)
+target_compile_options(tests PRIVATE -g -Wall -Werror -Wextra -Wpedantic -Wconversion -Wswitch-default -Wswitch-enum -Wunreachable-code -Wwrite-strings -Wcast-align -Wshadow -Wundef)
 
 if (COVERAGE)
     target_compile_options(tests PRIVATE --coverage)
