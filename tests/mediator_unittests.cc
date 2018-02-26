@@ -16,12 +16,15 @@ class BHandler : public holden::request_handler<GetB> {
    int handle(const GetB& m) { USE(m); return 1; }
 };
 
+TEST(cpp_mediator, does_not_compile) {
 
+}
 
 TEST(cpp_mediator, send_receive) {
   AHandler a{};
   BHandler b{};
   auto m = holden::make_mediator(a, b);
   (void)m;
-  //m.send(GetA{});
+  
+  m.send(GetA{});
 }

@@ -43,7 +43,7 @@ struct get_first_pass<Test, Tuple<Ts...>> : first_pass<Test, void, Ts...>
 template<class Base>
 struct is_derived_from {
   template<class Derived>
-  using test = std::is_base_of<Base,Derived>;
+  using test = std::is_base_of<std::decay_t<Base>, std::decay_t<Derived>>;
 };
 
 template<class Base, class Tuple>
@@ -59,6 +59,12 @@ auto get_from_base(Tuple&& tuple)
 }
 
 } // namespace tuple_searching
+
+template<typename T> inline
+T& ref(T& x) { return x; }
+template<typename T> inline
+T& ref(T* x) { return *x; }
+
 } // namespace detail
 
 
@@ -86,21 +92,25 @@ class mediator_base {};
 
 template <typename ...Handlers>
 class mediator final : public mediator_base {
-  std::tuple<Handlers&...> handlers_;
+  std::tuple<Handlers...> handlers_;
 
  public:
-  mediator(Handlers&... handlers)
-    : handlers_(std::forward_as_tuple(handlers...)) {}
+  mediator(Handlers... handlers)
+    : handlers_(handlers...) {}
 
   template<typename TRequest>
   auto send(const TRequest& r) -> typename TRequest::response_type {
-    return std::get<typename TRequest::handler_type>(handlers_).handle(r);
+    using namespace detail;
+    using namespace detail::tuple_searching;
+    using request_t = std::decay_t<TRequest>;
+    using handler_t = request_handler<request_t>;
+    return ref(get_from_base<handler_t>(handlers_)).handle(r);
   }
 };
 
 template <typename... Args>
 mediator<Args&...> make_mediator(Args&... args) {
-    return mediator<Args&...>(args...);
+  return mediator<Args&...>(args...);
 }
 
 } // namespace holden
