@@ -4,7 +4,7 @@
 
 A simple mediator implementation in C++ 
 
-### Example _hello, world_ program using `cpp-mediator` below.
+
 ```c++
 // A simple hello world program using `cpp-mediator`.
 #include <cpp_mediator/mediator.hpp>
