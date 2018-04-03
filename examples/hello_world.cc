@@ -14,6 +14,17 @@ struct SayHello : holden::request<void> {
 
 enum class FirstImpression { Good, Great, Stupendous, };
 
+std::ostream& operator<<(std::ostream& os, FirstImpression i) {
+  switch (i) {
+   case FirstImpression::Good:       os << "good!"
+   case FirstImpression::Great:      os << "great!!";
+   case FirstImpression::Stupendous: os << "stupendous!!!";
+   default: os << "off the charts!";
+  }
+  
+  return os;
+}
+
 // Or we can skip the `request<>` interface and add `response_type` manually.
 struct SayGoodbye {
   // Let mediator know what return type to infer.
@@ -44,6 +55,7 @@ class Speaker
 };
 
 
+
 int main() {
   Speaker s{};
   auto mediator = holden::make_mediator(s);
@@ -51,19 +63,9 @@ int main() {
   SayHello say_hello{ std::cout };
   mediator.send(say_hello);
 
-  auto fi_to_str = [](FirstImpression f) {
-    switch (f) {
-      case FirstImpression::Good:       return "good!";
-      case FirstImpression::Great:      return "great!!";
-      case FirstImpression::Stupendous: return "stupendous!!!";
-      default: return "off the charts!";
-    }
-  };
-
   auto first_impression = mediator.send(SayGoodbye{std::cout});
 
-  std::cout << "The speaker's first impression was "
-    << fi_to_str(first_impression) << "\n";
+  std::cout << "The speaker's first impression was " << first_impression << "\n";
 
   return 0;
 }
