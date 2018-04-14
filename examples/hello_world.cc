@@ -16,7 +16,7 @@ enum class FirstImpression { Good, Great, Stupendous, };
 
 std::ostream& operator<<(std::ostream& os, FirstImpression i) {
   switch (i) {
-   case FirstImpression::Good:       os << "good!"
+   case FirstImpression::Good:       os << "good!";
    case FirstImpression::Great:      os << "great!!";
    case FirstImpression::Stupendous: os << "stupendous!!!";
    default: os << "off the charts!";
