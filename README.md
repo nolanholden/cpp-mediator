@@ -8,7 +8,7 @@ A simple mediator implementation in C++
 ```c++
 // A demonstrative hello world program using `cpp-mediator`.
 
-#include "../include/cpp_mediator/mediator.hpp"
+#include <cpp_mediator/mediator.hpp>
 
 #include <iostream>
 
