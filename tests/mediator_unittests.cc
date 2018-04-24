@@ -29,7 +29,7 @@ TEST(cpp_mediator, send_receive) {
   AHandler2 a2{};
   BHandler b{};
 
-  // None of these compile!:
+  // None of these should compile!:
   // 
   // auto m = holden::make_mediator(); // error: no handler for `GetA` exists
   // m.send(GetA{});
