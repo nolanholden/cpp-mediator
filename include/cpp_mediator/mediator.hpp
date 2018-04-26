@@ -1,5 +1,5 @@
-#ifndef _HOLDEN_MEDIATOR_HPP_
-#define _HOLDEN_MEDIATOR_HPP_
+#ifndef HOLDEN_MEDIATOR_HPP_
+#define HOLDEN_MEDIATOR_HPP_
 
 #include <cstddef>
 #include <tuple>
@@ -120,4 +120,4 @@ mediator<Args&...> make_mediator(Args&... args) {
 
 } // namespace holden
 
-#endif // _HOLDEN_MEDIATOR_HPP_
+#endif // HOLDEN_MEDIATOR_HPP_
